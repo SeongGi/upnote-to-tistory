@@ -6,11 +6,63 @@ UpNote에서 내보낸 마크다운(.md) 파일과 이미지들을
 
 핵심: UI 버튼 클릭 대신 JavaScript로 에디터 API에 직접 주입하여
 안정적으로 동작합니다.
+
+* 처음 실행 시 자동으로 가상환경(.venv) 생성 및 패키지 설치가 진행됩니다.
 """
 
-import os
-import re
+# ──────────────────────────────────────────────
+# 자동 환경 설정 (venv 생성 + 패키지 설치)
+# ──────────────────────────────────────────────
 import sys
+import os
+import subprocess
+
+REQUIRED_PACKAGES = ["selenium", "webdriver-manager", "pyperclip", "markdown"]
+
+def _bootstrap():
+    """가상환경이 아니면 자동으로 생성하고 패키지를 설치한 뒤 재실행합니다."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    venv_dir = os.path.join(script_dir, ".venv")
+
+    # Windows vs Mac/Linux 경로 분기
+    if sys.platform == "win32":
+        venv_python = os.path.join(venv_dir, "Scripts", "python.exe")
+    else:
+        venv_python = os.path.join(venv_dir, "bin", "python")
+
+    # 이미 가상환경 안에서 실행 중이면 그대로 진행
+    if sys.prefix != sys.base_prefix:
+        return
+
+    print("=" * 55)
+    print("  초기 환경 설정 (최초 1회만 실행됩니다)")
+    print("=" * 55)
+
+    # 1) 가상환경 생성 (없을 경우)
+    if not os.path.exists(venv_python):
+        print("\n>> 가상환경 생성 중... (.venv)")
+        subprocess.check_call([sys.executable, "-m", "venv", venv_dir])
+        print("   완료!")
+
+    # 2) 필수 패키지 설치
+    print(">> 필수 패키지 설치 중...")
+    subprocess.check_call(
+        [venv_python, "-m", "pip", "install", "--upgrade", "pip", "-q"],
+    )
+    subprocess.check_call(
+        [venv_python, "-m", "pip", "install"] + REQUIRED_PACKAGES + ["-q"],
+    )
+    print("   완료!\n")
+
+    # 3) 가상환경 Python으로 이 스크립트를 다시 실행
+    os.execv(venv_python, [venv_python] + sys.argv)
+
+_bootstrap()
+
+# ──────────────────────────────────────────────
+# 여기서부터는 가상환경 안에서 실행됩니다
+# ──────────────────────────────────────────────
+import re
 import glob
 import time
 import base64
