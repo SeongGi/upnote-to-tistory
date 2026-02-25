@@ -54,13 +54,46 @@ python3 tistory_uploader.py
 7. 브라우저 우측 하단의 완료 버튼을 눌러 최종 발행합니다.
 
 ## 동작 원리 (How it works?)
-과거 UI 버튼을 일일이 클릭하던 매크로 방식은 에디터 구조가 바뀔 때마다 고장나고 속도에 한계가 있었습니다. 
-본 도구는 마크다운을 스크립트 내부에서 HTML 파일로 렌더링(로컬 이미지를 base64 문자로 치환) 한 뒤, Selenium 라이브러리를 통해 티스토리 에디터가 내부적으로 사용하는 JS API(React, TinyMCE)에 변환된 HTML 데이터를 직접 꽂아넣는 방식을 채택하여 우수한 안정성과 속도를 보여줍니다.
+
+### 티스토리 (tistory_uploader.py)
+마크다운을 스크립트 내부에서 HTML로 렌더링(로컬 이미지를 base64로 치환)한 뒤, Selenium을 통해 티스토리 에디터의 JS API(React, TinyMCE)에 직접 주입합니다.
+
+### GitHub Pages (github_uploader.py)
+마크다운에 Jekyll front matter를 자동 삽입하고, 이미지를 assets/ 폴더에 복사한 뒤 git push 합니다. Selenium이나 Chrome 없이 순수 Python + git만으로 동작합니다.
+
+---
+
+## GitHub Pages 블로그 업로더
+
+Jekyll 기반 GitHub Pages 블로그 (예: seonggi.github.io)에 글을 올리는 전용 스크립트입니다.
+
+```bash
+python3 github_uploader.py
+```
+
+기존 블로그의 _posts/ 폴더에서 카테고리를 자동으로 읽어와 번호 목록으로 보여줍니다.
+
+```
+───────────────────────────────────────────────────────
+  카테고리를 선택하세요
+───────────────────────────────────────────────────────
+  1. GCP
+  2. 달빛궁전
+  3. 시스템
+  4. (새 카테고리 직접 입력)
+
+번호 입력 (1~4):
+```
+
+이후 UpNote 폴더 경로를 입력하면 마크다운 변환, 이미지 복사, git push까지 자동으로 처리됩니다. 블로그 경로는 첫 실행 시 한 번만 입력하면 다음부터 기억합니다.
+
+---
 
 ## 파일 구조
 ```text
 upnote-to-tistory/
-├── tistory_uploader.py   # 메인 자동화 스크립트
+├── tistory_uploader.py   # 티스토리 자동 업로더
+├── github_uploader.py    # GitHub Pages 자동 업로더
 ├── requirements.txt      # Python 패키지 의존성 목록
 └── README.md             # 안내 문서
 ```
